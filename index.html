@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Radar - Hospital Honorio Delgado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            margin-top: 10px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            gap: 40px;
+            padding: 40px;
+        }
+        
+        .radar-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .radar-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        
+        .legend {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            height: fit-content;
+            max-height: 900px;
+            overflow-y: auto;
+        }
+        
+        .legend::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .legend::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+        
+        .legend::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .legend h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .quadrant-colors {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .quadrant-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        
+        .quadrant-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .quadrant-card h4 {
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+        
+        .quadrant-card p {
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .legend-section {
+            margin-bottom: 25px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .legend-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1.15em;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 0.88em;
+        }
+        
+        .legend-item:hover {
+            background: #f0f0f0;
+            transform: translateX(3px);
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .legend-text {
+            color: #555;
+            line-height: 1.3;
+        }
+        
+        .tech-point {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tech-point:hover {
+            r: 12;
+            filter: brightness(1.2) drop-shadow(0 0 6px currentColor);
+        }
+        
+        .tech-label {
+            font-size: 11px;
+            fill: #333;
+            pointer-events: none;
+            font-weight: 500;
+        }
+        
+        .tooltip {
+            position: fixed;
+            background: rgba(0,0,0,0.92);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .tooltip.show {
+            opacity: 1;
+        }
+        
+        .stats {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .stats h4 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.9em;
+        }
+        
+        .stat-label {
+            color: #666;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        @media (max-width: 1400px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .legend {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Tech Radar v2.0</h1>
+            <p><strong>Hospital Regional Honorio Delgado</strong></p>
+            <p style="font-size: 1em; margin-top: 5px;">Sistema de Gestión de Historias Clínicas Electrónicas</p>
+            <p style="font-size: 0.95em; margin-top: 8px; opacity: 0.9;">Sprint 8 • Octubre 2025</p>
+        </div>
+        
+        <div class="content">
+            <div>
+                <div class="radar-container">
+                    <svg class="radar-svg" viewBox="0 0 1000 1000">
+                        <!-- Anillos con bordes -->
+                        <circle cx="500" cy="500" r="440" fill="none" stroke="#e0e0e0" stroke-width="2"/>
+                        <circle cx="500" cy="500" r="330" fill="none" stroke="#e0e0e0" stroke-width="2"/>
+                        <circle cx="500" cy="500" r="220" fill="none" stroke="#e0e0e0" stroke-width="2"/>
+                        <circle cx="500" cy="500" r="110" fill="none" stroke="#e0e0e0" stroke-width="2"/>
+                        
+                        <!-- Líneas de cuadrantes -->
+                        <line x1="500" y1="60" x2="500" y2="940" stroke="#e0e0e0" stroke-width="2"/>
+                        <line x1="60" y1="500" x2="940" y2="500" stroke="#e0e0e0" stroke-width="2"/>
+                        
+                        <!-- Cuadrantes de fondo -->
+                        <path d="M 500 500 L 500 60 A 440 440 0 0 1 940 500 Z" fill="#4CAF50" opacity="0.1"/>
+                        <path d="M 500 500 L 940 500 A 440 440 0 0 1 500 940 Z" fill="#2196F3" opacity="0.1"/>
+                        <path d="M 500 500 L 500 940 A 440 440 0 0 1 60 500 Z" fill="#FF9800" opacity="0.1"/>
+                        <path d="M 500 500 L 60 500 A 440 440 0 0 1 500 60 Z" fill="#9C27B0" opacity="0.1"/>
+                        
+                        <!-- Etiquetas de anillos -->
+                        <text x="500" y="105" text-anchor="middle" fill="#2e7d32" font-weight="bold" font-size="18">ADOPT</text>
+                        <text x="500" y="215" text-anchor="middle" fill="#1565c0" font-weight="bold" font-size="18">TRIAL</text>
+                        <text x="500" y="325" text-anchor="middle" fill="#e65100" font-weight="bold" font-size="18">ASSESS</text>
+                        <text x="500" y="435" text-anchor="middle" fill="#c62828" font-weight="bold" font-size="18">HOLD</text>
+                        
+                        <!-- Etiquetas de cuadrantes -->
+                        <text x="720" y="45" text-anchor="middle" fill="#2e7d32" font-weight="bold" font-size="22">Languages & Frameworks</text>
+                        <text x="720" y="965" text-anchor="middle" fill="#1565c0" font-weight="bold" font-size="22">Platforms & Infrastructure</text>
+                        <text x="280" y="965" text-anchor="middle" fill="#e65100" font-weight="bold" font-size="22">Tools</text>
+                        <text x="280" y="45" text-anchor="middle" fill="#9C27B0" font-weight="bold" font-size="22">Techniques</text>
+                        
+                        <!-- ============= CUADRANTE 1: Languages & Frameworks (Superior Derecha) ============= -->
+                        
+                        <!-- HOLD - Q1 (0-110 radio del centro) -->
+                        <circle class="tech-point" cx="565" cy="460" r="7" fill="#c62828" data-tech="Quarkus - Evaluado Sprint 3 pero descartado por escaso material"/>
+                        <text x="565" y="448" class="tech-label" text-anchor="middle" fill="#999">Quarkus</text>
+                        
+                        <!-- ASSESS - Q1 (110-220 radio) -->
+                        <circle class="tech-point" cx="635" cy="395" r="7" fill="#e65100" data-tech="React Query - Alternativa para state management"/>
+                        <text x="635" y="383" class="tech-label" text-anchor="middle">React Query</text>
+                        
+                        <circle class="tech-point" cx="665" cy="375" r="7" fill="#e65100" data-tech="Kotlin - Alternativa a Java con null-safety"/>
+                        <text x="665" y="363" class="tech-label" text-anchor="middle">Kotlin</text>
+                        
+                        <!-- TRIAL - Q1 (220-330 radio) -->
+                        <circle class="tech-point" cx="720" cy="325" r="8" fill="#1565c0" data-tech="REST - Exclusivamente para Auth, esquema híbrido con GraphQL"/>
+                        <text x="720" y="313" class="tech-label" text-anchor="middle">REST</text>
+                        
+                        <circle class="tech-point" cx="755" cy="305" r="8" fill="#1565c0" data-tech="FastAPI - Microservicio Python para integración legacy"/>
+                        <text x="755" y="293" class="tech-label" text-anchor="middle">FastAPI</text>
+                        
+                        <!-- ADOPT - Q1 (330-440 radio - MÁS LEJOS) -->
+                        <circle class="tech-point" cx="810" cy="245" r="9" fill="#2e7d32" data-tech="Spring Boot 3.5.0 - Framework backend principal, robusto y enterprise"/>
+                        <text x="810" y="231" class="tech-label" text-anchor="middle">Spring Boot</text>
+                        
+                        <circle class="tech-point" cx="850" cy="220" r="9" fill="#2e7d32" data-tech="Java 21 LTS - Lenguaje backend con características modernas"/>
+                        <text x="850" y="206" class="tech-label" text-anchor="middle">Java 21</text>
+                        
+                        <circle class="tech-point" cx="890" cy="235" r="9" fill="#2e7d32" data-tech="Angular 19 - Framework frontend con standalone components"/>
+                        <text x="890" y="251" class="tech-label" text-anchor="middle">Angular</text>
+                        
+                        <circle class="tech-point" cx="870" cy="265" r="9" fill="#2e7d32" data-tech="TypeScript 5.x - Tipado estático para frontend"/>
+                        <text x="870" y="281" class="tech-label" text-anchor="middle">TypeScript</text>
+                        
+                        <circle class="tech-point" cx="915" cy="270" r="9" fill="#2e7d32" data-tech="Bootstrap 5.3.6 - Framework CSS responsive"/>
+                        <text x="915" y="286" class="tech-label" text-anchor="middle">Bootstrap</text>
+                        
+                        <circle class="tech-point" cx="835" cy="290" r="9" fill="#2e7d32" data-tech="GraphQL - API principal para datos clínicos, migrado Sprint 6"/>
+                        <text x="835" y="306" class="tech-label" text-anchor="middle">GraphQL</text>
+                        
+                        <circle class="tech-point" cx="895" cy="305" r="9" fill="#2e7d32" data-tech="RxJS 7.8 - Programación reactiva en Angular"/>
+                        <text x="895" y="321" class="tech-label" text-anchor="middle">RxJS</text>
+                        
+                        <circle class="tech-point" cx="855" cy="325" r="9" fill="#2e7d32" data-tech="Angular Material 19 - Componentes UI profesionales"/>
+                        <text x="855" y="341" class="tech-label" text-anchor="middle">Material</text>
+                        
+                        <circle class="tech-point" cx="800" cy="315" r="9" fill="#2e7d32" data-tech="Lombok - Reducción de boilerplate en Java"/>
+                        <text x="800" y="331" class="tech-label" text-anchor="middle">Lombok</text>
+                        
+                        <!-- ============= CUADRANTE 2: Platforms & Infrastructure (Inferior Derecha) ============= -->
+                        
+                        <!-- HOLD - Q2 (0-110 radio del centro) -->
+                        <circle class="tech-point" cx="565" cy="540" r="7" fill="#c62828" data-tech="Supabase - Descartado, migrado a PostgreSQL local por compliance"/>
+                        <text x="565" y="556" class="tech-label" text-anchor="middle" fill="#999">Supabase</text>
+                        
+                        <circle class="tech-point" cx="545" cy="560" r="7" fill="#c62828" data-tech="Render - Migrando a Digital Ocean/Dokploy"/>
+                        <text x="545" y="576" class="tech-label" text-anchor="middle" fill="#999">Render</text>
+                        
+                        <circle class="tech-point" cx="585" cy="555" r="7" fill="#c62828" data-tech="MongoDB - Evaluado y descartado, datos relacionales requieren SQL"/>
+                        <text x="585" y="571" class="tech-label" text-anchor="middle" fill="#999">MongoDB</text>
+                        
+                        <circle class="tech-point" cx="560" cy="580" r="7" fill="#c62828" data-tech="Oracle - Descartado por costos de licenciamiento"/>
+                        <text x="560" y="596" class="tech-label" text-anchor="middle" fill="#999">Oracle</text>
+                        
+                        <!-- ASSESS - Q2 (110-220 radio) -->
+                        <circle class="tech-point" cx="640" cy="620" r="7" fill="#e65100" data-tech="Kubernetes - Orquestación para escalabilidad futura"/>
+                        <text x="640" y="636" class="tech-label" text-anchor="middle">Kubernetes</text>
+                        
+                        <circle class="tech-point" cx="675" cy="635" r="7" fill="#e65100" data-tech="Redis - Cache distribuido para mejora de performance"/>
+                        <text x="675" y="651" class="tech-label" text-anchor="middle">Redis</text>
+                        
+                        <circle class="tech-point" cx="615" cy="650" r="7" fill="#e65100" data-tech="JUnit - Testing unitario backend, pendiente adopción Sprint 9-10"/>
+                        <text x="615" y="666" class="tech-label" text-anchor="middle">JUnit</text>
+                        
+                        <!-- TRIAL - Q2 (220-330 radio) -->
+                        <circle class="tech-point" cx="705" cy="710" r="8" fill="#1565c0" data-tech="Digital Ocean - Hosting producción actual, deploy funcional"/>
+                        <text x="705" y="726" class="tech-label" text-anchor="middle">Digital Ocean</text>
+                        
+                        <circle class="tech-point" cx="745" cy="725" r="8" fill="#1565c0" data-tech="Dokploy - Evaluando para hosting, más económico que DO"/>
+                        <text x="745" y="741" class="tech-label" text-anchor="middle">Dokploy</text>
+                        
+                        <!-- ADOPT - Q2 (330-440 radio - MÁS LEJOS) -->
+                        <circle class="tech-point" cx="790" cy="785" r="9" fill="#2e7d32" data-tech="PostgreSQL 17 - Base de datos relacional principal, solución definitiva local"/>
+                        <text x="790" y="801" class="tech-label" text-anchor="middle">PostgreSQL</text>
+                        
+                        <circle class="tech-point" cx="825" cy="800" r="9" fill="#2e7d32" data-tech="Docker - Containerización para desarrollo y despliegue"/>
+                        <text x="825" y="816" class="tech-label" text-anchor="middle">Docker</text>
+                        
+                        <circle class="tech-point" cx="755" cy="805" r="9" fill="#2e7d32" data-tech="GitLab - Control de versiones y CI/CD"/>
+                        <text x="755" y="821" class="tech-label" text-anchor="middle">GitLab</text>
+                        
+                        <!-- ============= CUADRANTE 3: Tools (Inferior Izquierda) ============= -->
+                        
+                        <!-- HOLD - Q3: Sin tecnologías en este cuadrante -->
+                        
+                        <!-- ASSESS - Q3 (110-220 radio) -->
+                        <circle class="tech-point" cx="365" cy="625" r="7" fill="#e65100" data-tech="Newman - CLI Postman para automatizar tests API en CI/CD"/>
+                        <text x="365" y="641" class="tech-label" text-anchor="middle">Newman</text>
+                        
+                        <circle class="tech-point" cx="335" cy="655" r="7" fill="#e65100" data-tech="Storybook - Desarrollo aislado componentes Angular"/>
+                        <text x="335" y="671" class="tech-label" text-anchor="middle">Storybook</text>
+                        
+                        <!-- TRIAL - Q3 (220-330 radio) -->
+                        <circle class="tech-point" cx="280" cy="715" r="8" fill="#1565c0" data-tech="SonarQube - Análisis estático de código, en configuración"/>
+                        <text x="280" y="731" class="tech-label" text-anchor="middle">SonarQube</text>
+                        
+                        <!-- ADOPT - Q3 (330-440 radio - MÁS LEJOS) -->
+                        <circle class="tech-point" cx="210" cy="790" r="9" fill="#2e7d32" data-tech="Postman - Testing APIs GraphQL/REST, colecciones versionadas"/>
+                        <text x="210" y="806" class="tech-label" text-anchor="middle">Postman</text>
+                        
+                        <circle class="tech-point" cx="175" cy="805" r="9" fill="#2e7d32" data-tech="Gradle 8.x - Build automation backend"/>
+                        <text x="175" y="821" class="tech-label" text-anchor="middle">Gradle</text>
+                        
+                        <circle class="tech-point" cx="245" cy="775" r="9" fill="#2e7d32" data-tech="Angular CLI 19 - Build frontend y scaffolding"/>
+                        <text x="245" y="791" class="tech-label" text-anchor="middle">Angular CLI</text>
+                        
+                        <!-- ============= CUADRANTE 4: Techniques (Superior Izquierda) ============= -->
+                        
+                        <!-- HOLD - Q4: Sin técnicas en este cuadrante -->
+                        
+                        <!-- ASSESS - Q4 (110-220 radio) -->
+                        <circle class="tech-point" cx="370" cy="385" r="7" fill="#e65100" data-tech="HL7 FHIR - Estándar interoperabilidad para integración futura"/>
+                        <text x="370" y="373" class="tech-label" text-anchor="middle">HL7 FHIR</text>
+                        
+                        <!-- TRIAL - Q4 (220-330 radio) -->
+                        <circle class="tech-point" cx="285" cy="315" r="8" fill="#1565c0" data-tech="IEEE 828-2012 - Gestión configuración, formal pero pesado"/>
+                        <text x="285" y="303" class="tech-label" text-anchor="middle">IEEE 828</text>
+                        
+                        <circle class="tech-point" cx="250" cy="295" r="8" fill="#1565c0" data-tech="Pair Programming - Ad-hoc en features complejas"/>
+                        <text x="250" y="283" class="tech-label" text-anchor="middle">Pair Prog.</text>
+                        
+                        <!-- ADOPT - Q4 (330-440 radio - MÁS LEJOS) -->
+                        <circle class="tech-point" cx="200" cy="225" r="9" fill="#2e7d32" data-tech="Scrum - Sprints 2 semanas, retrospectives continuas"/>
+                        <text x="200" y="211" class="tech-label" text-anchor="middle">Scrum</text>
+                        
+                        <circle class="tech-point" cx="165" cy="235" r="9" fill="#2e7d32" data-tech="Conventional Commits - 92% cumplimiento del equipo"/>
+                        <text x="165" y="251" class="tech-label" text-anchor="middle">Conv. Commits</text>
+                        
+                        <circle class="tech-point" cx="145" cy="265" r="9" fill="#2e7d32" data-tech="JWT Authentication - Tokens stateless access+refresh"/>
+                        <text x="145" y="281" class="tech-label" text-anchor="middle">JWT Auth</text>
+                        
+                        <circle class="tech-point" cx="175" cy="285" r="9" fill="#2e7d32" data-tech="Repository Pattern - Híbrido Spring Data JPA + JDBC Template"/>
+                        <text x="175" y="301" class="tech-label" text-anchor="middle">Repository</text>
+                        
+                        <circle class="tech-point" cx="215" cy="265" r="9" fill="#2e7d32" data-tech="Spring Security - Autenticación JWT y autorización por roles"/>
+                        <text x="215" y="281" class="tech-label" text-anchor="middle">Spring Security</text>
+                    </svg>
+                    <div class="tooltip" id="tooltip"></div>
+                </div>
+            </div>
+            
+            <div class="legend">
+                <h3>📊 Tech Radar</h3>
+                
+                <div class="stats">
+                    <h4>Estadísticas Sprint 8</h4>
+                    <div class="stat-item">
+                        <span class="stat-label">🟢 ADOPT:</span>
+                        <span class="stat-value">15 tecnologías (62%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🔵 TRIAL:</span>
+                        <span class="stat-value">5 tecnologías (21%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🟠 ASSESS:</span>
+                        <span class="stat-value">6 tecnologías (25%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🔴 HOLD:</span>
+                        <span class="stat-value">5 tecnologías (21%)</span>
+                    </div>
+                    <div class="stat-item" style="border-top: 1px solid #ddd; margin-top: 8px; padding-top: 8px;">
+                        <span class="stat-label">Total catalogado:</span>
+                        <span class="stat-value">31 items</span>
+                    </div>
+                </div>
+                
+                <div class="quadrant-colors">
+                    <div class="quadrant-card" style="border-color: #4CAF50;">
+                        <h4 style="color: #2e7d32;">Languages & Frameworks</h4>
+                        <p>Lenguajes de programación y frameworks de desarrollo (backend/frontend)</p>
+                    </div>
+                    <div class="quadrant-card" style="border-color: #2196F3;">
+                        <h4 style="color: #1565c0;">Platforms & Infrastructure</h4>
+                        <p>Plataformas de hosting, bases de datos, contenedores, servicios cloud</p>
+                    </div>
+                    <div class="quadrant-card" style="border-color: #FF9800;">
+                        <h4 style="color: #e65100;">Tools</h4>
+                        <p>Herramientas de desarrollo, testing, build automation, monitoreo</p>
+                    </div>
+                    <div class="quadrant-card" style="border-color: #9C27B0;">
+                        <h4 style="color: #7b1fa2;">Techniques</h4>
+                        <p>Prácticas de desarrollo, metodologías, estándares, patrones arquitectónicos</p>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <div class="legend-title" style="color: #2e7d32;">🟢 ADOPT (15)</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #2e7d32;"></div>
+                            <div class="legend-text">Tecnologías probadas y en producción</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #2e7d32;"></div>
+                            <div class="legend-text">Usar en nuevos desarrollos con confianza</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #2e7d32;"></div>
+                            <div class="legend-text">Base consolidada del proyecto</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <div class="legend-title" style="color: #1565c0;">🔵 TRIAL (5)</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #1565c0;"></div>
+                            <div class="legend-text">En uso activo, evaluando resultados</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #1565c0;"></div>
+                            <div class="legend-text">Usar en proyectos piloto</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #1565c0;"></div>
+                            <div class="legend-text">Monitorear lecciones aprendidas</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <div class="legend-title" style="color: #e65100;">🟠 ASSESS (6)</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #e65100;"></div>
+                            <div class="legend-text">Investigando o planeando adoptar</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #e65100;"></div>
+                            <div class="legend-text">Experimentar con prototipos</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #e65100;"></div>
+                            <div class="legend-text">Evaluar viabilidad técnica</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <div class="legend-title" style="color: #c62828;">🔴 HOLD (5)</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #c62828;"></div>
+                            <div class="legend-text">Deprecadas o evitar usar</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #c62828;"></div>
+                            <div class="legend-text">No usar en nuevos desarrollos</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #c62828;"></div>
+                            <div class="legend-text">Migrar progresivamente</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 10px; font-size: 0.85em; color: #666;">
+                    <strong style="color: #667eea;">💡 Nota:</strong> Este radar representa el estado actual del stack tecnológico al Sprint 8. 
+                    Las decisiones técnicas están documentadas y alineadas con IEEE 828-2012 e ISO 12207.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const points = document.querySelectorAll('.tech-point');
+        const tooltip = document.getElementById('tooltip');
+        
+        points.forEach(point => {
+            point.addEventListener('mouseenter', (e) => {
+                const tech = e.target.getAttribute('data-tech');
+                if (tech) {
+                    tooltip.textContent = tech;
+                    tooltip.classList.add('show');
+                }
+            });
+            
+            point.addEventListener('mousemove', (e) => {
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+            });
+            
+            point.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+        });
+        
+        // Animación suave al cargar
+        window.addEventListener('load', () => {
+            points.forEach((point, index) => {
+                setTimeout(() => {
+                    point.style.opacity = '0';
+                    point.style.transform = 'scale(0)';
+                    setTimeout(() => {
+                        point.style.transition = 'all 0.5s ease';
+                        point.style.opacity = '1';
+                        point.style.transform = 'scale(1)';
+                    }, 50);
+                }, index * 30);
+            });
+        });
+    </script>
+</body>
+</html>
